@@ -40,12 +40,22 @@ public class SalesService {
         Ticket ticket = new Ticket(concert, account);
         salesRepository.insert(ticket);
 
-        Sale sale = new Sale();
-        sale.setTicket(ticket);
-        sale.setPrice(price);
-        sale.setSellDate(timestamp);
+        AuditTrail auditTrail = new AuditTrail();
+        auditTrail.setAccount(account);
+        if(price > 0){
+            Sale sale = new Sale();
+            sale.setTicket(ticket);
+            sale.setPrice(price);
+            sale.setSellDate(timestamp);
 
-        salesRepository.insert(sale);
+            salesRepository.insert(sale);
+            auditTrail.setSale(sale);
+            salesRepository.insert(auditTrail);
+        } else {
+            salesRepository.insert(auditTrail);
+            throw new RuntimeException("Incorrect price: " + price);
+        }
+
     }
 
     public Optional<Sale> getSale(Long accountId, Long concertId) {
